@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using Windows.Storage;
 
 namespace CSharpAnalytics.Sessions
 {
@@ -15,6 +16,8 @@ namespace CSharpAnalytics.Sessions
     /// </summary>
     public class SessionManager
     {
+        private const String guidKey = "GuidKey";
+
         private readonly Random random = new Random();
         private readonly Visitor visitor;
 
@@ -43,7 +46,17 @@ namespace CSharpAnalytics.Sessions
             }
             else
             {
-                visitor = new Visitor();
+                var localStorage = ApplicationData.Current.LocalSettings;
+                Guid guid = Guid.Empty;
+                if (localStorage.Values.ContainsKey(guidKey) ) {
+                    guid =  (Guid)localStorage.Values[guidKey];
+                } else {
+                    // Need a better way to get a unique guid
+                    guid = Guid.NewGuid();
+                    localStorage.Values[guidKey] = guid;
+                }
+
+                visitor = new Visitor(guid);
                 Session = new Session();
                 PreviousSessionStartedAt = Session.StartedAt;
                 SessionStatus = SessionStatus.Starting;
